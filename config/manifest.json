@@ -1,0 +1,40 @@
+{
+  "files": {
+    "artifacts/processed/processed_test.csv": {
+      "provenance": {
+        "stage": "preprocessed"
+      },
+      "recorded_at": "2026-11-24T01:53:42.552463+00:00",
+      "sha256": "87b0e0aa4de6e8361d15a2ab15012ef2cdf515e1e7a95e808eaa7136fc083267",
+      "size": 95196
+    },
+    "artifacts/processed/processed_train.csv": {
+      "provenance": {
+        "stage": "preprocessed"
+      },
+      "recorded_at": "2026-11-24T01:53:40.317624+00:00",
+      "sha256": "469754258693a320da1495e74eea569a7c073dbac070fe1b8a19928372f9da1d",
+      "size": 379964
+    },
+    "artifacts/raw/raw.csv": {
+      "provenance": {},
+      "recorded_at": "2026-11-24T01:53:23.935603+00:00",
+      "sha256": "1f0573aa3e3e8f5b37a753a454058a9ef9ebb981bcabeeb7ef43cdccedaecf29",
+      "size": 485702
+    },
+    "artifacts/raw/test.csv": {
+      "provenance": {},
+      "recorded_at": "2026-11-24T01:53:28.726958+00:00",
+      "sha256": "aed4d4d4c30dbf445448b417023e5fead5473b499e0ffee8d996013120b2db93",
+      "size": 97575
+    },
+    "artifacts/raw/train.csv": {
+      "provenance": {},
+      "recorded_at": "2026-11-24T01:53:28.204213+00:00",
+      "sha256": "974796675cc75ca2b5c80c15e1911c20d86e4393a9ea0b9a382c542d9ae6399d",
+      "size": 389476
+    }
+  },
+  "generated_at": "2026-11-24T01:53:42.556470+00:00",
+  "version": 2
+}

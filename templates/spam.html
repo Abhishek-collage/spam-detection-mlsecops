@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpamGuard — Spam Detection & Account</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: #f1f5f9;
+            color: #0f172a;
+            padding: 32px 16px;
+        }
+        .container { max-width: 760px; margin: 0 auto; }
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            padding: 28px;
+            margin-bottom: 20px;
+        }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .topbar h2 { font-size: 1.35rem; }
+        .sub { font-size: 0.82rem; color: #64748b; }
+        .btn {
+            padding: 9px 14px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: #ffffff;
+            background: #2563eb;
+        }
+        .btn:hover { background: #1d4ed8; }
+        .btn-sm { padding: 6px 12px; font-size: 0.82rem; }
+        .btn-outline {
+            background: #ffffff;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+        }
+        .btn-outline:hover { background: #f8fafc; }
+        .btn-warn { background: #d97706; }
+        .btn-warn:hover { background: #b45309; }
+        .btn-danger { background: #dc2626; }
+        .btn-danger:hover { background: #b91c1c; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn {
+            padding: 8px 16px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #334155;
+        }
+        .tab-btn.active { background: #2563eb; color: #ffffff; border-color: #2563eb; }
+        .form-group { margin-bottom: 14px; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; color: #334155; }
+        textarea, input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+        textarea:focus, input:focus { outline: none; border-color: #2563eb; }
+        .samples { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; align-items: center; }
+        .row { display: flex; gap: 12px; }
+        .row .col-name { flex: 2; }
+        .row .col-age { flex: 1; }
+        .profile-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 14px;
+            margin-bottom: 18px;
+            font-size: 0.9rem;
+            line-height: 1.7;
+        }
+        .danger-zone {
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid #fee2e2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+        .result {
+            margin-top: 16px;
+            padding: 14px;
+            border-radius: 8px;
+            display: none;
+        }
+        .result.spam { display: block; background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+        .result.ham { display: block; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
+        .result.drift { display: block; background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+        .alert {
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            margin-bottom: 14px;
+            display: none;
+        }
+        .alert.error { display: block; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+        .alert.success { display: block; background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="topbar">
+                <div>
+                    <h2>SpamGuard MLSecOps</h2>
+                    <div class="sub">Logged in as <strong id="headerEmail">...</strong></div>
+                </div>
+                <button type="button" class="btn btn-outline btn-sm" onclick="logout()">Logout</button>
+            </div>
+
+            <div id="alertBox" class="alert"></div>
+
+            <div class="tabs">
+                <button type="button" id="tabPredict" class="tab-btn active" onclick="switchSection('predict')">Spam Detection</button>
+                <button type="button" id="tabAccount" class="tab-btn" onclick="switchSection('account')">Account (Update / Delete)</button>
+            </div>
+
+            <!-- Spam Prediction Section -->
+            <div id="predictSection">
+                <form onsubmit="handlePredict(event)">
+                    <div class="form-group">
+                        <label for="messageInput">Message Text</label>
+                        <textarea id="messageInput" rows="4" required placeholder="Paste SMS or email content..."></textarea>
+                    </div>
+                    <div class="samples">
+                        <span class="sub">Samples:</span>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="fillSample('ham')">Load Normal (Ham)</button>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="fillSample('spam')">Load Phishing (Spam)</button>
+                    </div>
+                    <button type="submit" class="btn">Run Spam Check</button>
+                </form>
+
+                <div id="resultBox" class="result"></div>
+            </div>
+
+            <!-- Account CRUD Section -->
+            <div id="accountSection" class="hidden">
+                <div class="profile-box">
+                    <div><strong>ID:</strong> <span id="profId">-</span></div>
+                    <div><strong>Email:</strong> <span id="profEmail">-</span></div>
+                    <div><strong>Name:</strong> <span id="profName">-</span></div>
+                    <div><strong>Age:</strong> <span id="profAge">-</span></div>
+                </div>
+
+                <form onsubmit="handleUpdate(event)">
+                    <div class="row">
+                        <div class="form-group col-name">
+                            <label for="updName">Update Name</label>
+                            <input type="text" id="updName" minlength="2" maxlength="50" required>
+                        </div>
+                        <div class="form-group col-age">
+                            <label for="updAge">Update Age</label>
+                            <input type="number" id="updAge" min="1" max="119" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="updPassword">New Password (optional)</label>
+                        <input type="password" id="updPassword" minlength="6" placeholder="Leave blank to keep existing">
+                    </div>
+                    <button type="submit" class="btn btn-warn">Save Changes</button>
+                </form>
+
+                <div class="danger-zone">
+                    <div>
+                        <strong style="color:#dc2626;">Delete Account</strong>
+                        <div class="sub">Permanently removes your user record from MongoDB.</div>
+                    </div>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="handleDelete()">Delete Account</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem("access_token");
+        if (!token) {
+            window.location.href = "/";
+        }
+
+        function showAlert(msg, type) {
+            const box = document.getElementById("alertBox");
+            box.textContent = msg;
+            box.className = `alert ${type}`;
+        }
+
+        function logout() {
+            localStorage.removeItem("access_token");
+            window.location.href = "/";
+        }
+
+        function switchSection(sec) {
+            document.getElementById("alertBox").className = "alert";
+            const isPred = sec === "predict";
+            document.getElementById("tabPredict").classList.toggle("active", isPred);
+            document.getElementById("tabAccount").classList.toggle("active", !isPred);
+            document.getElementById("predictSection").classList.toggle("hidden", !isPred);
+            document.getElementById("accountSection").classList.toggle("hidden", isPred);
+            if (!isPred) loadProfile();
+        }
+
+        function fillSample(kind) {
+            const input = document.getElementById("messageInput");
+            if (kind === "ham") {
+                input.value = "Hey, are we still on for dinner at 8 PM?";
+            } else {
+                input.value = "URGENT! Claim your Rs. 50,000 bonus now at http://bit.ly/win-cash and share your OTP.";
+            }
+        }
+
+        async function loadProfile() {
+            try {
+                const res = await fetch("/users/me", {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                if (res.status === 401) return logout();
+                const user = await res.json();
+                document.getElementById("headerEmail").textContent = user.email;
+                document.getElementById("profId").textContent = user.id;
+                document.getElementById("profEmail").textContent = user.email;
+                document.getElementById("profName").textContent = user.name;
+                document.getElementById("profAge").textContent = user.age;
+                document.getElementById("updName").value = user.name;
+                document.getElementById("updAge").value = user.age;
+            } catch (err) {
+                showAlert("Could not load user profile.", "error");
+            }
+        }
+
+        async function handlePredict(e) {
+            e.preventDefault();
+            const message = document.getElementById("messageInput").value;
+            const resBox = document.getElementById("resultBox");
+
+            try {
+                const res = await fetch("/predict/web", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ message })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || "Prediction failed");
+
+                if (data.drift_detected) {
+                    alert("This is drift data");
+                    resBox.className = "result drift";
+                    resBox.innerHTML = `
+                        <strong>This is drift data</strong><br>
+                        <span class="sub">Audit Hash: <code>${data.audit_hash || "N/A"}</code></span>
+                    `;
+                    return;
+                }
+
+                const isSpam = typeof data.is_spam === "boolean"
+                    ? data.is_spam
+                    : String(data.prediction || "").toLowerCase() === "spam";
+                const label = data.prediction || (isSpam ? "Spam" : "Ham");
+
+                resBox.className = `result ${isSpam ? "spam" : "ham"}`;
+                resBox.innerHTML = `
+                    <strong>Prediction: ${label}</strong><br>
+                    <span class="sub">Audit Hash: <code>${data.audit_hash || "N/A"}</code></span>
+                `;
+            } catch (err) {
+                showAlert(err.message, "error");
+            }
+        }
+
+        async function handleUpdate(e) {
+            e.preventDefault();
+            const payload = {
+                name: document.getElementById("updName").value,
+                age: parseInt(document.getElementById("updAge").value, 10)
+            };
+            const newPass = document.getElementById("updPassword").value;
+            if (newPass) payload.password = newPass;
+
+            try {
+                const res = await fetch("/users/me", {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || "Update failed");
+
+                document.getElementById("updPassword").value = "";
+                await loadProfile();
+                showAlert("Account updated.", "success");
+            } catch (err) {
+                showAlert(err.message, "error");
+            }
+        }
+
+        async function handleDelete() {
+            if (!confirm("Delete your account permanently?")) return;
+            try {
+                const res = await fetch("/users/me", {
+                    method: "DELETE",
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || "Delete failed");
+                logout();
+            } catch (err) {
+                showAlert(err.message, "error");
+            }
+        }
+
+        loadProfile();
+    </script>
+</body>
+</html>

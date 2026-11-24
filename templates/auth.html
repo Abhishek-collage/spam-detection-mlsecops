@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpamGuard — Login & Register</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: #f1f5f9;
+            color: #0f172a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 440px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            padding: 28px;
+        }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h2 { font-size: 1.4rem; margin-bottom: 6px; }
+        .badge {
+            display: inline-block;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 999px;
+        }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 8px;
+        }
+        .tab-btn {
+            flex: 1;
+            border: none;
+            background: transparent;
+            padding: 8px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            color: #475569;
+        }
+        .tab-btn.active { background: #ffffff; color: #0f172a; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 14px; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 5px; color: #334155; }
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+        input:focus { outline: none; border-color: #2563eb; }
+        .row { display: flex; gap: 10px; }
+        .row .col-name { flex: 2; }
+        .row .col-age { flex: 1; }
+        .btn {
+            width: 100%;
+            padding: 11px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: #ffffff;
+            background: #2563eb;
+            margin-top: 4px;
+        }
+        .btn:hover { background: #1d4ed8; }
+        .btn-green { background: #16a34a; }
+        .btn-green:hover { background: #15803d; }
+        .alert {
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            margin-bottom: 14px;
+            display: none;
+        }
+        .alert.error { display: block; background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+        .alert.success { display: block; background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="header">
+            <h2>SpamGuard MLSecOps</h2>
+            <span class="badge">ECDSA Signed Model • JWT • Guardrails</span>
+        </div>
+
+        <div id="alertBox" class="alert"></div>
+
+        <div class="tabs">
+            <button type="button" id="tabLogin" class="tab-btn active" onclick="switchTab('login')">Login</button>
+            <button type="button" id="tabRegister" class="tab-btn" onclick="switchTab('register')">Register</button>
+        </div>
+
+        <!-- Login Form -->
+        <form id="loginForm" onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label for="loginEmail">Email Address</label>
+                <input type="email" id="loginEmail" required placeholder="abhi@example.com">
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" required placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn">Sign In</button>
+        </form>
+
+        <!-- Register Form -->
+        <form id="registerForm" class="hidden" onsubmit="handleRegister(event)">
+            <div class="row">
+                <div class="form-group col-name">
+                    <label for="regName">Full Name</label>
+                    <input type="text" id="regName" minlength="2" maxlength="50" required placeholder="Abhishek">
+                </div>
+                <div class="form-group col-age">
+                    <label for="regAge">Age</label>
+                    <input type="number" id="regAge" min="1" max="119" required placeholder="23">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="regEmail">Email Address</label>
+                <input type="email" id="regEmail" required placeholder="abhi@example.com">
+            </div>
+            <div class="form-group">
+                <label for="regPassword">Password (min 6 chars)</label>
+                <input type="password" id="regPassword" minlength="6" required placeholder="••••••••">
+            </div>
+            <button type="submit" class="btn btn-green">Create Account</button>
+        </form>
+    </div>
+
+    <script>
+   
+        if (localStorage.getItem("access_token")) {
+            window.location.href = "/spam";
+        }
+
+        function showAlert(msg, type) {
+            const box = document.getElementById("alertBox");
+            box.textContent = msg;
+            box.className = `alert ${type}`;
+        }
+
+        function switchTab(tab) {
+            document.getElementById("alertBox").className = "alert";
+            const isLogin = tab === "login";
+            document.getElementById("tabLogin").classList.toggle("active", isLogin);
+            document.getElementById("tabRegister").classList.toggle("active", !isLogin);
+            document.getElementById("loginForm").classList.toggle("hidden", !isLogin);
+            document.getElementById("registerForm").classList.toggle("hidden", isLogin);
+        }
+
+        async function parseResponseSafe(res) {
+            const raw = await res.text();
+            try {
+                return JSON.parse(raw);
+            } catch {
+                return { detail: raw || `Request failed (${res.status})` };
+            }
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            if (submitBtn) submitBtn.disabled = true;
+
+            const formData = new URLSearchParams();
+            formData.append("username", document.getElementById("loginEmail").value.trim());
+            formData.append("password", document.getElementById("loginPassword").value);
+
+            try {
+                const res = await fetch("/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                    body: formData
+                });
+                const data = await parseResponseSafe(res);
+                if (!res.ok) throw new Error(data.detail || "Login failed");
+
+                localStorage.setItem("access_token", data.access_token);
+                window.location.href = "/spam";
+            } catch (err) {
+                showAlert(err.message, "error");
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        }
+
+        async function handleRegister(e) {
+            e.preventDefault();
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            if (submitBtn) submitBtn.disabled = true;
+
+            const ageVal = parseInt(document.getElementById("regAge").value, 10);
+            const payload = {
+                name: document.getElementById("regName").value.trim(),
+                age: Number.isNaN(ageVal) ? 0 : ageVal,
+                email: document.getElementById("regEmail").value.trim(),
+                password: document.getElementById("regPassword").value
+            };
+
+            try {
+                const res = await fetch("/register", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const data = await parseResponseSafe(res);
+                if (!res.ok) throw new Error(data.detail || "Registration failed");
+
+                document.getElementById("registerForm").reset();
+                switchTab("login");
+                showAlert("Account created! Please sign in.", "success");
+            } catch (err) {
+                showAlert(err.message, "error");
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        }
+
+    </script>
+</body>
+</html>
