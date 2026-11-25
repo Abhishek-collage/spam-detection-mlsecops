@@ -89,7 +89,6 @@ def sign_model_file(model_path: str, private_key_path: str = PRIVATE_KEY_PATH) -
         f.write(signature)
     return sig_path
 
-
 def load_verified_model(model_path: str):
     sig_path = f"{model_path}.sig"
 
@@ -122,7 +121,6 @@ def load_verified_model(model_path: str):
         return pickle.loads(model_data)
     except Exception:
         return joblib.load(io.BytesIO(model_data))
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
