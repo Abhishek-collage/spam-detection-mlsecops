@@ -1,7 +1,9 @@
 import os
 import joblib
 import mlflow
+import dagshub
 import mlflow.sklearn
+from dotenv import load_dotenv
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
@@ -14,7 +16,7 @@ from src.logger import get_logger
 
 os.environ["MLFLOW_ALLOW_FILE_STORE"] = "true"
 logger = get_logger(__name__)
-
+load_dotenv()
 
 class ModelTraining:
     def __init__(self, train_path, test_path, model_output_path):
@@ -92,7 +94,13 @@ class ModelTraining:
 
     def run(self):
         try:
-            mlflow.set_tracking_uri("sqlite:///mlflow.db")
+            dagshub.auth.add_app_token(os.environ["MLFLOW_TRACKING_PASSWORD"])
+            dagshub.init(
+                repo_owner="abhishekla314",
+                repo_name="spam-detection-mlsecops",
+                mlflow=True,
+            )
+            
             mlflow.set_experiment("Spam_Classification")
             with mlflow.start_run():
                 logger.info("Starting model training pipeline")
